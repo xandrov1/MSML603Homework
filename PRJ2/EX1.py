@@ -96,8 +96,6 @@ for i in range(3):
     for feat, score in zip(top_features[sorted_idx], top_scores[sorted_idx]): # print attribute and score as tuple for each k
         print(f'  {feat}: {score:.4f}')
 
-
-
 print('\n Task 1 (ii)')
 clf = RandomForestClassifier(n_estimators=100, random_state=42) # Initialize random forest with 100 trees
 clf = clf.fit(X, y) # Train the forest on data
@@ -284,11 +282,13 @@ plt.figure(figsize=(14, 6))  # wider for side-by-side, not as tall
 
 # First subplot - SVM
 plt.subplot(1, 2, 1)
+plt.yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 plt.plot(K_vals, svm_results['Feature Selection'], label='Feature Selection', marker='o', color='blue')
 plt.plot(K_vals, svm_results['Feature Importance'], label='Feature Importance', marker='o', color='green')
 plt.plot(K_vals, svm_results['PCA'], label='PCA', marker='o', color='red')
 plt.plot(K_vals, svm_results['LDA'], label='LDA', marker='o', color='purple')
 plt.axhline(y=svm_results['Baseline'], label='Baseline (9 features)', linestyle='--', color='black')
+plt.yticks(np.arange(0.5, 1.01, 0.05))
 plt.xlabel("K values")
 plt.ylabel("Average accuracy")
 plt.title("SVM Performance") 
@@ -302,6 +302,7 @@ plt.plot(K_vals, nb_results['Feature Importance'], label='Feature Importance', m
 plt.plot(K_vals, nb_results['PCA'], label='PCA', marker='o', color='red')
 plt.plot(K_vals, nb_results['LDA'], label='LDA', marker='o', color='purple')
 plt.axhline(y=nb_results['Baseline'], label='Baseline (9 features)', linestyle='--', color='black')
+plt.yticks(np.arange(0.5, 1.01, 0.05)) 
 plt.xlabel("K values")
 plt.ylabel("Average accuracy")
 plt.title("Naive Bayes Performance") 
@@ -309,4 +310,5 @@ plt.grid()
 plt.legend()
 
 plt.tight_layout()  # prevents labels from overlapping
+plt.savefig('results.png', dpi=300, bbox_inches='tight')
 plt.show()
