@@ -11,12 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 
-# Task 1:
-# Let Kf be the number of features to be selected by feature selection methods. Perform the feature
-# selection using (i) univariate feature selection method and (ii) feature importance scores for Kf = 1, 2, 3.
-# For computing feature importance scores, use a random forest classifier. List the features selected by these methods for Kf = 1, 2, 3.
-
-# pollution data frame 
+# pollution data frame import
 pollutionDF = pd.read_csv('pollution_dataset.csv')
 # Print first rows 
 print('\nOriginal data: \n', pollutionDF.head())
@@ -32,6 +27,53 @@ X = np.clip(X, 0, None)
 print("\nFeature names:\n", feature_names)
 print("\nFeatures values (first 5 rows):\n", X[:5])
 print("\nLabels (first 5 rows):\n", y[:5])
+
+# Creating two dictionaries to save accuracies and plotting
+svm_results = {
+    'Feature Selection': [],
+    'Feature Importance': [],
+    'PCA': [],
+    'LDA': [],
+    'Baseline': 0  # single value
+}
+
+nb_results = {
+    'Feature Selection': [],
+    'Feature Importance': [],
+    'PCA': [],
+    'LDA': [],
+    'Baseline': 0  # single value
+}
+
+# Initialize baseline accuracies
+svm_accuracy = nb_accuracy = 0
+
+# Baseline: train models with all 9 features first. Using no dimensionality technique
+for i in range(50):
+
+    # Split and train on same split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=i) # Use same random state (same rows/cities)
+
+    # SVM
+    svm_model = LinearSVC(C=1.0)
+    svm_model.fit(X_train, y_train)
+    svm_preds = svm_model.predict(X_test) # Test SVM model
+    svm_accuracy += accuracy_score(y_test, svm_preds) # Sum accuracy scores
+
+    #NB
+    nb_model = GaussianNB()
+    nb_model.fit(X_train, y_train)
+    nb_preds = nb_model.predict(X_test) # Test NB model
+    nb_accuracy += accuracy_score(y_test, nb_preds) # Sum accuracy scores
+    
+svm_results['Baseline'] = svm_accuracy/50 # Store basline average accuracy for SVM
+nb_results['Baseline'] = nb_accuracy/50 # Store baseline average accuracy for NB
+    
+
+# Task 1:
+# Let Kf be the number of features to be selected by feature selection methods. Perform the feature
+# selection using (i) univariate feature selection method and (ii) feature importance scores for Kf = 1, 2, 3.
+# For computing feature importance scores, use a random forest classifier. List the features selected by these methods for Kf = 1, 2, 3.
 
 print('\n Task 1 (i)')
 X_featureSelection = [] # To store k top features
@@ -131,9 +173,9 @@ for i in range(3):
         svm_preds_fi = svm_model_fi.predict(X_test) # Test SVM model
         svm_accuracy_fi += accuracy_score(y_test, svm_preds_fi) # Sum accuracy scores
     
-    avg_accuracy_fs = svm_accuracy_fs / 50 # Average accuracy of SVM models with feature selection attributes
-    avg_accuracy_fi = svm_accuracy_fi / 50 # Average accuracy of SVM models with feature importance attributes
-    print(f'Kf={i+1}:\nFeature Selection, Avg SVM Accuracy: {avg_accuracy_fs:.4f}\nFeature Importance, Avg SVM Accuracy: {avg_accuracy_fi:.4f}')
+    svm_results['Feature Selection'].append(svm_accuracy_fs/50) # Average accuracy of SVM models with feature selection attributes
+    svm_results['Feature Importance'].append(svm_accuracy_fi/50) # Average accuracy of SVM models with feature importance attributes
+    print(f'Kf={i+1}:\nFeature Selection, Avg SVM Accuracy: {svm_results['Feature Selection'][i]:.4f}\nFeature Importance, Avg SVM Accuracy: {svm_results['Feature Importance'][i]:.4f}')
 
 
 print('\n Task 3 (ii)\n')
@@ -162,10 +204,10 @@ for i in range(3):
         nb_model_fi.fit(X_train, y_train)
         nb_preds_fi = nb_model_fi.predict(X_test) # Test NB model
         nb_accuracy_fi += accuracy_score(y_test, nb_preds_fi) # Sum accuracy scores
-    
-    avg_accuracy_fs = nb_accuracy_fs / 50 # Average accuracy of NB models with feature selection attributes
-    avg_accuracy_fi = nb_accuracy_fi / 50 # Average accuracy of NB models with feature importance attributes
-    print(f'Kf={i+1}:\nFeature Selection, Avg NB Accuracy: {avg_accuracy_fs:.4f}\nFeature Importance, Avg NB Accuracy: {avg_accuracy_fi:.4f}')
+
+    nb_results['Feature Selection'].append(nb_accuracy_fs/50) # Average accuracy of SVM models with feature selection attributes
+    nb_results['Feature Importance'].append(nb_accuracy_fi/50) # Average accuracy of SVM models with feature importance attributes
+    print(f'Kf={i+1}:\nFeature Selection, Avg NB Accuracy: {nb_results['Feature Selection'][i]:.4f}\nFeature Importance, Avg NB Accuracy: {nb_results['Feature Importance'][i]:.4f}')
 
 
 # Task 4: For Ks = 1, 2, 3, use the new datasets generated via PCA and LDA from Task 2 and perform multi-class 
@@ -197,10 +239,10 @@ for i in range(3):
         svm_model_lda.fit(X_train, y_train)
         svm_preds_lda = svm_model_lda.predict(X_test) # Test SVM model
         svm_accuracy_lda += accuracy_score(y_test, svm_preds_lda) # Sum accuracies
-    
-    avg_accuracy_pca = svm_accuracy_pca / 50 # Average accuracy of SVM models with PCA attributes
-    avg_accuracy_lda = svm_accuracy_lda / 50 # Average accuracy of SVM models with LDA attributes
-    print(f'Ks={i+1}:\n PCA, Avg SVM Accuracy: {avg_accuracy_pca:.4f}\n LDA, Avg SVM Accuracy: {avg_accuracy_lda:.4f}')
+
+    svm_results['PCA'].append(svm_accuracy_pca/50) # Average accuracy of SVM models with PCA attributes
+    svm_results['LDA'].append(svm_accuracy_lda/50) # Average accuracy of SVM models with LDA attributes
+    print(f'Ks={i+1}:\nPCA, Avg SVM Accuracy: {svm_results['PCA'][i]:.4f}\nLDA, Avg SVM Accuracy: {svm_results['LDA'][i]:.4f}')
 
 
 print('\n Task 4 (ii)\n')
@@ -228,6 +270,43 @@ for i in range(3):
         nb_preds_lda = nb_model_lda.predict(X_test) # Test NB model
         nb_accuracy_lda += accuracy_score(y_test, nb_preds_lda)  # Sum accuracies
     
-    avg_accuracy_pca = nb_accuracy_pca / 50 # Average accuracy of NB models with PCA attributes
-    avg_accuracy_lda = nb_accuracy_lda / 50 # Average accuracy of NB models with PCA attributes
-    print(f'Ks={i+1}:\n PCA, Avg NB Accuracy: {avg_accuracy_pca:.4f}\n LDA, Avg NB Accuracy: {avg_accuracy_lda:.4f}')
+    nb_results['PCA'].append(nb_accuracy_pca/50) # Average accuracy of NB models with PCA attributes
+    nb_results['LDA'].append(nb_accuracy_lda/50) # Average accuracy of NB models with LDA attributes
+    print(f'Ks={i+1}:\n PCA, Avg NB Accuracy: {nb_results['PCA'][i]:.4f}\n LDA, Avg NB Accuracy: {nb_results['LDA'][i]:.4f}')
+
+# Plotting
+# A comparison across all methods for each classifier
+# so one plot showing SVM accuracy for all 4 methods (Feature Selection, Feature Importance, PCA, LDA) on the same graph, and another for NB.
+# Add one more for baseline (Using all 9 features) for SVM and NB
+
+K_vals = [1,2,3]
+plt.figure(figsize=(14, 6))  # wider for side-by-side, not as tall
+
+# First subplot - SVM
+plt.subplot(1, 2, 1)
+plt.plot(K_vals, svm_results['Feature Selection'], label='Feature Selection', marker='o', color='blue')
+plt.plot(K_vals, svm_results['Feature Importance'], label='Feature Importance', marker='o', color='green')
+plt.plot(K_vals, svm_results['PCA'], label='PCA', marker='o', color='red')
+plt.plot(K_vals, svm_results['LDA'], label='LDA', marker='o', color='purple')
+plt.axhline(y=svm_results['Baseline'], label='Baseline (9 features)', linestyle='--', color='black')
+plt.xlabel("K values")
+plt.ylabel("Average accuracy")
+plt.title("SVM Performance") 
+plt.grid()
+plt.legend() 
+
+# Second subplot - NB
+plt.subplot(1, 2, 2)
+plt.plot(K_vals, nb_results['Feature Selection'], label='Feature Selection', marker='o', color='blue')
+plt.plot(K_vals, nb_results['Feature Importance'], label='Feature Importance', marker='o', color='green')
+plt.plot(K_vals, nb_results['PCA'], label='PCA', marker='o', color='red')
+plt.plot(K_vals, nb_results['LDA'], label='LDA', marker='o', color='purple')
+plt.axhline(y=nb_results['Baseline'], label='Baseline (9 features)', linestyle='--', color='black')
+plt.xlabel("K values")
+plt.ylabel("Average accuracy")
+plt.title("Naive Bayes Performance") 
+plt.grid()
+plt.legend()
+
+plt.tight_layout()  # prevents labels from overlapping
+plt.show()
